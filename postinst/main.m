@@ -30,32 +30,16 @@ int main(int argc, char *argv[], char *envp[])
 		return 1;
 	}
 
-	if([[NSFileManager defaultManager] fileExistsAtPath:@"/usr/lib/substrate/SubstrateInserter.dylib"])
+	if(![[NSFileManager defaultManager] fileExistsAtPath:@"/usr/lib/substrate/SubstrateInserter.dylib"])
 	{
-		printf("Detected Substrate!\n");
-		hookingPlatform = 1;
-	}
-	else if([[NSFileManager defaultManager] fileExistsAtPath:@"/usr/lib/substitute-inserter.dylib"])
-	{
-		printf("Detected Substitute!\n");
-		hookingPlatform = 2;
-	}
-	else
-	{
-		printf("ERROR: Can't determine hooking platform.\n");
-		return -1;
+		printf("ERROR: Substrate not found\n");
+		printf("ChoicyLoader DOES NOT DO ANYTHING ON YOUR DEVICE AND IS NOT NEEDED, PLEASE UNINSTALL IT.\n");
+		printf("ChoicyLoader DOES NOT DO ANYTHING ON YOUR DEVICE AND IS NOT NEEDED, PLEASE UNINSTALL IT.\n");
+		printf("ChoicyLoader DOES NOT DO ANYTHING ON YOUR DEVICE AND IS NOT NEEDED, PLEASE UNINSTALL IT.\n");
+		return 0;
 	}
 
-	NSString* targetPath;
-
-	if(hookingPlatform == 1)
-	{
-		targetPath = @"/usr/lib/substrate/SubstrateLoader.dylib";
-	}
-	else if(hookingPlatform == 2)
-	{
-		targetPath = @"/usr/lib/substitute-loader.dylib";
-	}
+	NSString* targetPath = @"/usr/lib/substrate/SubstrateLoader.dylib";
 
 	NSString* origPath = [[[targetPath stringByDeletingPathExtension] stringByAppendingString:@"_orig"] stringByAppendingPathExtension:[targetPath pathExtension]];
 

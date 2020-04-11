@@ -23,30 +23,48 @@
 __attribute__((constructor))
 static void init(void)
 {
-	int hookingPlatform = 0;
+	@autoreleasepool
+	{
+		HBLogDebug(@"ChoicyLoader: Out here");
 
-	if([[NSFileManager defaultManager] fileExistsAtPath:@"/usr/lib/substrate/SubstrateInserter.dylib"])
-	{
-		HBLogDebug(@"Detected Substrate!");
-		hookingPlatform = 1;
-	}
-	else if([[NSFileManager defaultManager] fileExistsAtPath:@"/usr/lib/substitute-inserter.dylib"])
-	{
-		HBLogDebug(@"Detected Substitute!");
-		hookingPlatform = 2;
-	}
+		//Choicy 1.1.3 and below
+		if([[NSFileManager defaultManager] fileExistsAtPath:@"/Library/MobileSubstrate/DynamicLibraries/000_Choicy.dylib"])
+		{
+			dlopen("/Library/MobileSubstrate/DynamicLibraries/000_Choicy.dylib", RTLD_NOW);
+		}
 
-	HBLogDebug(@"ChoicyLoader: Out here");
-	dlopen("/Library/MobileSubstrate/DynamicLibraries/000_Choicy.dylib", RTLD_NOW);
-	HBLogDebug(@"ChoicyLoader: Loaded Choicy");
-	if(hookingPlatform == 1)
-	{
-		dlopen("/usr/lib/substrate/SubstrateLoader_orig.dylib", RTLD_NOW);
-		HBLogDebug(@"ChoicyLoader: Loaded Substrate");
-	}
-	else if(hookingPlatform == 2)
-	{
-		dlopen("/usr/lib/substitute-loader_orig.dylib", RTLD_NOW);
-		HBLogDebug(@"ChoicyLoader: Loaded Substitute");
+		//Choicy 1.2 and above
+		if([[NSFileManager defaultManager] fileExistsAtPath:@"/Library/MobileSubstrate/DynamicLibraries/   Choicy.dylib"])
+		{
+			dlopen("/Library/MobileSubstrate/DynamicLibraries/   Choicy.dylib", RTLD_NOW);
+		}
+		
+		char* error = dlerror();
+		if(!error)
+		{
+			HBLogDebug(@"ChoicyLoader: Loaded Choicy!");
+		}
+		else
+		{
+			NSLog(@"ChoicyLoader: ERROR loading Choicy: %s", error);
+		}
+
+		if([[NSFileManager defaultManager] fileExistsAtPath:@"/usr/lib/substrate/SubstrateLoader_orig.dylib"])
+		{
+			dlopen("/usr/lib/substrate/SubstrateLoader_orig.dylib", RTLD_NOW);
+			char* substrateError = dlerror();
+			if(!substrateError)
+			{
+				HBLogDebug(@"ChoicyLoader: Loaded SubstrateLoader!");
+			}
+			else
+			{
+				NSLog(@"ChoicyLoader: ERROR loading SubstrateLoader");
+			}
+		}
+		else
+		{
+			NSLog(@"ChoicyLoader: SubstrateLoader_orig not found");
+		}
 	}
 }

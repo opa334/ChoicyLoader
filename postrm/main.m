@@ -20,7 +20,42 @@
 
 #include <stdio.h>
 
-int hookingPlatform = 0;
+//0: did nothing, -1: error, 1: success
+int disableChoicyLoader(NSString* loaderPath)
+{
+	NSString* origPath = [[[loaderPath stringByDeletingPathExtension] stringByAppendingString:@"_orig"] stringByAppendingPathExtension:[loaderPath pathExtension]];
+
+	NSError* error;
+	NSDictionary* loaderAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:loaderPath error:&error];
+
+	if(![[loaderAttributes objectForKey:NSFileType] isEqualToString:NSFileTypeSymbolicLink])
+	{
+		printf("%s is not a symbolic link, ChoicyLoader is likely already disabled.\n", loaderPath.UTF8String);
+		return 0;
+	}
+
+	if(![[NSFileManager defaultManager] fileExistsAtPath:origPath])
+	{
+		printf("%s does not exist, ChoicyLoader is likely already disabled.\n", origPath.UTF8String);
+		return 0;
+	}
+
+	[[NSFileManager defaultManager] removeItemAtPath:loaderPath error:&error];
+	if(error)
+	{
+		printf("ERROR: Removing %s symlink failed: %s.\n", loaderPath.lastPathComponent.UTF8String, error.description.UTF8String);
+		return -1;
+	}
+
+	[[NSFileManager defaultManager] moveItemAtPath:origPath toPath:loaderPath error:&error];
+	if(error)
+	{
+		printf("ERROR: Moving %s back failed: %s.\n", loaderPath.lastPathComponent.UTF8String, error.description.UTF8String);
+		return -1;
+	}
+
+	return 1;
+}
 
 int main(int argc, char *argv[], char *envp[])
 {
@@ -30,63 +65,30 @@ int main(int argc, char *argv[], char *envp[])
 		return 1;
 	}
 
-	if([[NSFileManager defaultManager] fileExistsAtPath:@"/usr/lib/substrate/SubstrateInserter.dylib"])
+	if(![[NSFileManager defaultManager] fileExistsAtPath:@"/usr/lib/substrate/SubstrateInserter.dylib"])
 	{
-		hookingPlatform = 1;
-	}
-	else if([[NSFileManager defaultManager] fileExistsAtPath:@"/usr/lib/substitute-inserter.dylib"])
-	{
-		hookingPlatform = 2;
-	}
-	else
-	{
-		printf("ERROR: Can't determine hooking platform.\n");
-		return -1;
-	}
+		printf("Substrate not found. Looking for a deprecated Substitute installation...\n");
 
-	NSString* targetPath;
+		int ret = disableChoicyLoader(@"/usr/lib/substitute-loader.dylib");
 
-	if(hookingPlatform == 1)
-	{
-		targetPath = @"/usr/lib/substrate/SubstrateLoader.dylib";
-	}
-	else if(hookingPlatform == 2)
-	{
-		targetPath = @"/usr/lib/substitute-loader.dylib";
-	}
+		if(ret == 1)
+		{
+			printf("Sucessfully reverted deprecated Substitute installation!\n");
+		}
+		else if(ret == 0)
+		{
+			printf("Deprecated Substitute installation not found, all good\n");
+		}
 
-	NSString* origPath = [[[targetPath stringByDeletingPathExtension] stringByAppendingString:@"_orig"] stringByAppendingPathExtension:[targetPath pathExtension]];
-
-	NSError* error;
-	NSDictionary* targetLoaderAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:targetPath error:&error];
-
-	if(![[targetLoaderAttributes objectForKey:NSFileType] isEqualToString:NSFileTypeSymbolicLink])
-	{
-		printf("ERROR: %s is not a symbolic link, ChoicyLoader is likely already disabled.\n", targetPath.UTF8String);
 		return 0;
 	}
 
-	if(![[NSFileManager defaultManager] fileExistsAtPath:origPath])
-	{
-		printf("ERROR: %s does not exist, ChoicyLoader is likely already disabled.\n", origPath.UTF8String);
-		return 0;
-	}
+	int ret = disableChoicyLoader(@"/usr/lib/substrate/SubstrateLoader.dylib");
 
-	[[NSFileManager defaultManager] removeItemAtPath:targetPath error:&error];
-	if(error)
+	if(ret == 1)
 	{
-		printf("ERROR: Removing %s symlink failed: %s.\n", targetPath.lastPathComponent.UTF8String, error.description.UTF8String);
-		return 2;
+		printf("Sucessfully disabled ChoicyLoader!\n");
 	}
-
-	[[NSFileManager defaultManager] moveItemAtPath:origPath toPath:targetPath error:&error];
-	if(error)
-	{
-		printf("ERROR: Moving %s back failed: %s.\n", targetPath.lastPathComponent.UTF8String, error.description.UTF8String);
-		return 2;
-	}
-
-	printf("Sucessfully disabled ChoicyLoader!\n");
 
 	return 0;
 }
