@@ -1,7 +1,7 @@
 Package: com.opa334.choicyloader
 Name: ChoicyLoader
 Depends: com.opa334.choicy
-Version: 1.1
+Version: 1.1-2
 Architecture: iphoneos-arm
 Description: Hacky workaround to always load Choicy first
 Depiction: https://opa334.github.io/depic/ChoicyLoader/index.html
