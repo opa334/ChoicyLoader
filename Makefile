@@ -3,7 +3,7 @@ include $(THEOS)/makefiles/common.mk
 LIBRARY_NAME = ChoicyLoader
 
 ChoicyLoader_FILES = ChoicyLoader.m
-ChoicyLoader_CFLAGS = -fobjc-arc
+ChoicyLoader_CFLAGS = -fobjc-arc -DTHEOS_LEAN_AND_MEAN # <- this makes theos not link against anything by default (we do not want to link UIKit cause we load system wide)
 
 include $(THEOS_MAKE_PATH)/library.mk
 SUBPROJECTS = postinst postrm
