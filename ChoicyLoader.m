@@ -24,6 +24,15 @@
 __attribute__((constructor))
 static void init(void)
 {
+	CFStringRef securityIdentifier = CFStringCreateWithCString(kCFAllocatorDefault, "com.apple.Security", kCFStringEncodingUTF8);
+	CFBundleRef securityBundle = CFBundleGetBundleWithIdentifier(securityIdentifier);
+	CFRelease(securityIdentifier);	
+
+	if(!securityBundle)
+	{
+		return;
+	}
+
 	//Choicy 1.1.3 and below
 	if(access("/Library/MobileSubstrate/DynamicLibraries/000_Choicy.dylib", F_OK) != -1)
 	{
