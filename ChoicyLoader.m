@@ -45,6 +45,12 @@ static void init(void)
 		dlopen("/Library/MobileSubstrate/DynamicLibraries/   Choicy.dylib", RTLD_NOW);
 	}
 
+	//If Crane is installed, load it after Choicy
+	if(access("/Library/MobileSubstrate/DynamicLibraries/ Crane.dylib", F_OK) != -1)
+	{
+		dlopen("/Library/MobileSubstrate/DynamicLibraries/ Crane.dylib", RTLD_NOW);
+	}
+
 	//Load Substrate
 	if(access("/usr/lib/substrate/SubstrateLoader_orig.dylib", F_OK) != -1)
 	{
